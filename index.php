@@ -82,22 +82,18 @@ if ($method == "POST") {
         $db->loadInvoiceChecksums($invoiceChecksums);
         $db->loadNoteChecksums($noteChecksums);
 
-        $vals = [];
         $checksums = [];
         foreach ($days as $day) {
             $db->loadEventsOnDay($day, $c);
             if (strlen(trim($c)) > 0) {
-                $vals["events_" . $day] = $c;
                 $checksums["events_" . $day] = hash("sha256", $c);
             }
         }
         if ($layoutChanged != null) {
             $checksums["layout-changed"] = $layoutChanged;
-            $vals["layout-changed"] = $layoutChanged;
         }
         if ($layout != null) {
             $checksums["layout"] = hash("sha256", $layout);
-            $vals["layout"] = $layout;
         }
         foreach ($invoiceChecksums as $invoiceKey => $invoiceChecksum) {
             $checksums[$invoiceKey] = $invoiceChecksum;
@@ -131,8 +127,11 @@ if ($method == "POST") {
                 } elseif (strpos($k, 'note_') === 0) {
                     $noteJson = $db->loadNote(substr($k, strlen('note_')));
                     $overrides[$k] = $noteJson;
+                } elseif (strpos($k, 'events_') === 0) {
+                    $day = substr($k, strlen('events_'));
+                    $overrides[$k] = $db->loadEventsOnDay($day);
                 } else {
-                    $overrides[$k] = $vals[$k];
+                    debugLog($customer . " incoming misses " . $k);
                 }
             } elseif (
                 (
@@ -160,8 +159,13 @@ if ($method == "POST") {
                 } elseif (strpos($k, 'note_') === 0) {
                     $noteJson = $db->loadNote(substr($k, strlen('note_')));
                     $overrides[$k] = $noteJson;
-                } else {
-                    $overrides[$k] = $vals[$k];
+                } elseif (strpos($k, 'events_') === 0) {
+                    $day = substr($k, strlen('events_'));
+                    $overrides[$k] = $db->loadEventsOnDay($day);
+                } else if (k == 'layout-changed') {
+                    $overrides['layout'] = $layout;
+                } else if (k == 'layout') {
+                    debugLog($customer . " unhandled " . $k);
                 }
             }
             if (isset($overrides[$k]) && $overrides[$k] !== null) {
