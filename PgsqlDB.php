@@ -25,13 +25,13 @@ class PgsqlDB extends PdoDB
     {
         $days = [];
         // Events
-        $stmt = $this->db->prepare('SELECT DISTINCT DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(ROUND(`time` / 1000)), \'+00:00\', @@session.time_zone), \'%Y-%m-%d\') AS `day` FROM `' . $this->prefix . 'EVENT` ORDER BY `time` ASC');
+        $stmt = $this->db->prepare('SELECT DISTINCT TO_CHAR(TO_TIMESTAMP(ROUND("time" / 1000)::DECIMAL)::DATE, \'YYYY-MM-DD\') AS "day" FROM "' . $this->prefix . 'EVENT" ORDER BY "time" ASC');
         $stmt->execute([]);
         while ($data = $stmt->fetch()) {
             $days[] = $data['day'];
         }
         //Infos
-        $stmt = $this->db->prepare('SELECT DISTINCT DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(ROUND(`time` / 1000)), \'+00:00\', @@session.time_zone), \'%Y-%m-%d\') AS `day` FROM `' . $this->prefix . 'INFO` ORDER BY `time` ASC');
+        $stmt = $this->db->prepare('SELECT DISTINCT TO_CHAR(TO_TIMESTAMP(ROUND("time" / 1000)::DECIMAL)::DATE, \'YYYY-MM-DD\') AS "day" FROM "' . $this->prefix . 'INFO" ORDER BY "time" ASC');
         $stmt->execute([]);
         while ($data = $stmt->fetch()) {
             if (!in_array($data['day'], $days)) {
@@ -44,7 +44,7 @@ class PgsqlDB extends PdoDB
 
     public function loadInvoiceChecksums(&$checksums)
     {
-        $stmt = $this->db->prepare('SELECT "key", SHA2("value", 256) as  "checksum" FROM "' . $this->prefix . 'INVOICE" WHERE "key" like \'invoice_%\'');
+        $stmt = $this->db->prepare('SELECT "key", ENCODE(SHA256(CONVERT_TO("value", \'UTF8\')), \'hex\') AS "checksum" FROM "' . $this->prefix . 'INVOICE" WHERE "key" like \'invoice_%\'');
         $stmt->execute([]);
         $checksums = [];
         while ($data = $stmt->fetch()) {
@@ -54,7 +54,7 @@ class PgsqlDB extends PdoDB
 
     public function loadNoteChecksums(&$checksums)
     {
-        $stmt = $this->db->prepare('SELECT `key`, SHA2(`value`, 256) as  `checksum` FROM `' . $this->prefix . 'NOTE` WHERE `key` like \'note_%\'');
+        $stmt = $this->db->prepare('SELECT "key", ENCODE(SHA256(CONVERT_TO("value", \'UTF8\')), \'hex\') AS "checksum" FROM "' . $this->prefix . 'NOTE" WHERE "key" like \'note_%\'');
         $stmt->execute([]);
         $checksums = [];
         while ($data = $stmt->fetch()) {
