@@ -1,6 +1,6 @@
-# Time2Emphasize store
+# PHP implementation of the Time2Emphasize storage
 
-Download to install a storage service on your hosted domain and connect it to the Time2Emphasize Webapp.
+Download to install a storage service on your hosted domain and connect it to the Time2Emphasize Webapp. An alternative [Spring Boot implementation](https://github.com/MartinHartnagel/time2.storage-springboot/) is also available.
 
 ## Mimimum Requirements
 
@@ -27,3 +27,7 @@ Notice: `check_pdo.php` can be deleted on your server thereafter.
 ## Using the Time2Emphasize REST API
 
 After connecting your storage in the Time2Emphasize Webapp, the endpoints will be made accessable under https://time2.emphasize.de/api in the Time2Emphasize REST API for testing and integration of git-hooks or other implementations.
+
+## Features only available with a connected storage
+
+- sharing of [notes](https://time2.emphasize.de/note)
