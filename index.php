@@ -129,7 +129,8 @@ if ($method == "POST") {
                     $overrides[$k] = $noteJson;
                 } elseif (strpos($k, 'events_') === 0) {
                     $day = substr($k, strlen('events_'));
-                    $overrides[$k] = $db->loadEventsOnDay($day);
+                    $db->loadEventsOnDay($day, $c);
+                    $overrides[$k] = $c;
                 } else {
                     debugLog($customer . " incoming misses " . $k);
                 }
@@ -161,10 +162,11 @@ if ($method == "POST") {
                     $overrides[$k] = $noteJson;
                 } elseif (strpos($k, 'events_') === 0) {
                     $day = substr($k, strlen('events_'));
-                    $overrides[$k] = $db->loadEventsOnDay($day);
-                } else if (k == 'layout-changed') {
+                    $db->loadEventsOnDay($day, $c);
+                    $overrides[$k] = $c;
+                } else if ($k == 'layout-changed') {
                     $overrides['layout'] = $layout;
-                } else if (k == 'layout') {
+                } else if ($k == 'layout') {
                     debugLog($customer . " unhandled " . $k);
                 }
             }

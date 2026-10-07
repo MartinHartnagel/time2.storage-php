@@ -7,6 +7,7 @@ abstract class PdoDB
 
     public function loadLayoutAndChanged($at, &$layout, &$changed)
     {
+        assert($at != null, 'layout to load at is null');
         $stmt = $this->db->prepare('SELECT `value`, `time` FROM `' . $this->prefix . 'LAYOUT` WHERE `time` <= ? ORDER BY `time` DESC LIMIT 1');
         $stmt->execute([$at]);
         $data = $stmt->fetch();
@@ -21,6 +22,8 @@ abstract class PdoDB
 
     public function storeLayout($at, $value)
     {
+        assert($at != null, 'layout to store at is null');
+        assert($value != null, 'layout to store is null');
         $sql = 'DELETE FROM `' . $this->prefix . 'LAYOUT` WHERE `time` = :time';
         $statement = $this->db->prepare($sql);
         $statement->execute(['time' => $at]);
@@ -32,6 +35,8 @@ abstract class PdoDB
 
     public function loadEventsOnDay($day, &$events)
     {
+        assert($day != null, 'day to load events for is null');
+        assert(strlen($day) != 10, 'day to load events for has invalid length: "' . $day . '"');
         $es = [];
 
         // Events:
@@ -77,6 +82,8 @@ abstract class PdoDB
 
     public function loadEventsInRange($from, $to, &$events, &$infos)
     {
+        assert($from != null, 'events to load from is null');
+        assert($to != null, 'events to load to is null');
         $events = [];
         $stmt = $this->db->prepare('SELECT `time`, `name`, `color`, `end` FROM `' . $this->prefix . 'EVENT` WHERE (`end` IS NULL OR `end` >= :from) AND `time` <= :to ORDER BY `time` ASC');
         $stmt->execute(['from' => $from, 'to' => $to]);
@@ -104,6 +111,11 @@ abstract class PdoDB
 
     public function storeEvent($time, $name, $color, $end)
     {
+        assert($time != null, 'event to store time is null');
+        assert($name != null, 'event to store name is null');
+        assert(strlen($name) == 0, 'event to store name length is 0');
+        assert($color != null, 'event to store color is null');
+        assert(strlen($color) == 0, 'event to store color length is 0');
         $sql = 'DELETE FROM `' . $this->prefix . 'EVENT` WHERE `time` = :time';
         $statement = $this->db->prepare($sql);
         $statement->execute(['time' => $time]);
@@ -121,6 +133,8 @@ abstract class PdoDB
 
     public function storeInfo($time, $info)
     {
+        assert($time != null, 'info to store time is null');
+        assert($info != null, 'info to store is null');
         $sql = 'DELETE FROM `' . $this->prefix . 'INFO` WHERE `time` = :time';
         $statement = $this->db->prepare($sql);
         $statement->execute(['time' => $time]);
@@ -132,6 +146,7 @@ abstract class PdoDB
 
     public function loadInvoiceValue($key)
     {
+        assert($key != null, 'invoice keyValue key to load is null');
         $stmt = $this->db->prepare('SELECT `value` FROM `' . $this->prefix . 'INVOICE` WHERE `key` = :key');
         $stmt->execute(['key' => $key]);
         $data = $stmt->fetch();
@@ -143,17 +158,23 @@ abstract class PdoDB
 
     public function storeInvoice($invoiceNumber, $extracted)
     {
+        assert($invoiceNumber != null, 'invoice invoiceNumber to store is null');
         $this->storeInvoiceKeyValue('invoice_' . $invoiceNumber, json_encode($extracted['invoice']));
-        foreach ($extracted['twigs'] as $k => $v) {
-            $this->storeInvoiceKeyValue($k, $v);
+        if (isset($extracted['twigs'])) {
+            foreach ($extracted['twigs'] as $k => $v) {
+                $this->storeInvoiceKeyValue($k, $v);
+            }
         }
-        foreach ($extracted['assets'] as $k => $v) {
-            $this->storeInvoiceKeyValue($k, $v);
+        if (isset($extracted['assets'])) {
+            foreach ($extracted['assets'] as $k => $v) {
+                $this->storeInvoiceKeyValue($k, $v);
+            }
         }
     }
 
     private function storeInvoiceKeyValue($key, $value)
     {
+        assert($key != null, 'invoice keyValue key to store is null');
         $this->deleteInvoiceKeyValue($key);
         $sql = 'INSERT INTO `' . $this->prefix . 'INVOICE` (`key`, `value`) VALUES (:key, :value)';
         $statement = $this->db->prepare($sql);
@@ -162,6 +183,7 @@ abstract class PdoDB
 
     public function loadNote($id)
     {
+        assert($id != null, 'note id to load is null');
         $key = 'note_' . $id;
         $stmt = $this->db->prepare('SELECT `value` FROM `' . $this->prefix . 'NOTE` WHERE `key` = :key');
         $stmt->execute(['key' => $key]);
@@ -174,11 +196,13 @@ abstract class PdoDB
 
     public function storeNote($id, $obj)
     {
+        assert($id != null, 'note id is null');
         $this->storeNoteKeyValue('note_' . $id, json_encode($obj));
     }
 
     private function storeNoteKeyValue($key, $value)
     {
+        assert($key != null, 'note keyValue key is null');
         $this->deleteNoteKeyValue($key);
         $sql = 'INSERT INTO `' . $this->prefix . 'NOTE` (`key`, `value`) VALUES (:key, :value)';
         $statement = $this->db->prepare($sql);
@@ -187,12 +211,14 @@ abstract class PdoDB
 
     public function deleteInvoice($invoiceNumber)
     {
+        assert($invoiceNumber != null, 'invoice invoiceNumber is null');
         $key = 'invoice_' . $invoiceNumber;
         $this->deleteInvoiceKeyValue($key);
     }
 
     private function deleteInvoiceKeyValue($key)
     {
+        assert($key != null, 'invoice keyValue key to delete is null');
         $sql = 'DELETE FROM `' . $this->prefix . 'INVOICE` WHERE `key` = :key';
         $statement = $this->db->prepare($sql);
         $statement->execute(['key' => $key]);
@@ -200,12 +226,14 @@ abstract class PdoDB
 
     public function deleteNote($id)
     {
+        assert($id != null, 'note id to delete is null');
         $key = 'note_' . $id;
         $this->deleteNoteKeyValue($key);
     }
 
     private function deleteNoteKeyValue($key)
     {
+        assert($key != null, 'note keyValue key to delete is null');
         $sql = 'DELETE FROM `' . $this->prefix . 'NOTE` WHERE `key` = :key';
         $statement = $this->db->prepare($sql);
         $statement->execute(['key' => $key]);
